@@ -1,0 +1,10 @@
+'use strict';
+const fs=require('node:fs');const path=require('node:path');
+const root=path.resolve(__dirname,'..'),dist=path.join(root,'dist');
+fs.mkdirSync(dist,{recursive:true});
+for(const file of ['index.html','styles.css','app.js','favicon.svg','.nojekyll'])fs.copyFileSync(path.join(root,file),path.join(dist,file));
+fs.mkdirSync(path.join(dist,'data'),{recursive:true});
+const json=JSON.parse(fs.readFileSync(path.join(root,'data','calendar.json'),'utf8'));
+if(!json.days||typeof json.days!=='object'||json.version!==1)throw Error('Archivo de datos inválido');
+fs.writeFileSync(path.join(dist,'data','calendar.json'),JSON.stringify(json,null,2)+'\n');
+console.log('Sitio estático preparado en dist/; ningún secreto ni script de servidor se publica.');

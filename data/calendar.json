@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "configured": false,
+  "source": "Live Tennis API FREE",
+  "timezone": "America/Monterrey",
+  "updatedAt": null,
+  "complete": false,
+  "errors": ["No se ha ejecutado la primera actualización con la clave gratuita."],
+  "days": {}
+}
