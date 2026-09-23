@@ -1,0 +1,78 @@
+name: Tenis Plus - cartelera y GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+  schedule:
+    - cron: '23 6,14,22 * * *'
+
+  workflow_dispatch:
+
+concurrency:
+  group: tenis-plus-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pages: write
+
+    steps:
+      - name: Obtener código
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Actualizar calendario desde la API gratuita
+        if: github.event_name != 'push'
+        env:
+          LIVETENNISAPI_KEY: ${{ secrets.LIVETENNISAPI_KEY }}
+        run: node scripts/update-calendar.js
+
+      - name: Guardar datos nuevos
+        if: github.event_name != 'push' && github.ref == 'refs/heads/main'
+        run: |
+          if ! git diff --quiet -- data/calendar.json; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add data/calendar.json
+            git commit -m 'Actualiza cartelera de tenis'
+            git push origin HEAD:main
+          fi
+
+      - name: Crear sitio estático
+        run: node scripts/build-site.js
+
+      - name: Preparar GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Subir archivos del sitio
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./dist
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Publicar Tenis Plus
+        id: deployment
+        uses: actions/deploy-pages@v4
