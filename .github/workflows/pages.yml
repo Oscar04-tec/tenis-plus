@@ -1,11 +1,13 @@
-name: Tenis Plus - cartelera y GitHub Pages
+name: Tenis Plus - análisis diario y GitHub Pages
 
 on:
   push:
     branches: [main]
 
+  # Una corrida diaria, 06:23 hora Monterrey aproximada (12:23 UTC).
+  # Se deja margen de cuota para análisis de perfiles en el plan FREE.
   schedule:
-    - cron: '23 6,14,22 * * *'
+    - cron: '23 12 * * *'
 
   workflow_dispatch:
 
@@ -32,20 +34,20 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Actualizar calendario desde la API gratuita
+      - name: Actualizar cartelera y ejecutar análisis automático
         if: github.event_name != 'push'
         env:
           LIVETENNISAPI_KEY: ${{ secrets.LIVETENNISAPI_KEY }}
         run: node scripts/update-calendar.js
 
-      - name: Guardar datos nuevos
+      - name: Guardar análisis y cartelera
         if: github.event_name != 'push' && github.ref == 'refs/heads/main'
         run: |
           if ! git diff --quiet -- data/calendar.json; then
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
             git add data/calendar.json
-            git commit -m 'Actualiza cartelera de tenis'
+            git commit -m 'Actualiza cartelera y análisis automático'
             git push origin HEAD:main
           fi
 
